@@ -935,7 +935,7 @@ function comprimir(file) {
 }
 const fotosTotal = () => CART.reduce((s, i) => s + i.fotos.length, 0);
 const puedeCompartir = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "a.jpg", { type: "image/jpeg" })] })); } catch (e) { return false; } };
-let REF_ACTUAL = "", ENVIADO_REF = "", ENVIANDO = false;
+let REF_ACTUAL = "", ENVIADO_REF = "", ENVIANDO = false, ENVIO_FALLO = false;
 function updateResult() {
   REF_ACTUAL = "";
   ajustarHorario();
@@ -995,10 +995,10 @@ function updateResult() {
   $("#qFalta").textContent = listo ? "" : "Falta: " + falta.join(", ") + ".";
   if (ENVIADO_REF && ENVIADO_REF !== REF_ACTUAL) { ENVIADO_REF = ""; $("#qSendMsg").textContent = ""; }
   const yaEnv = !!ENVIADO_REF, send = $("#qSend");
-  send.hidden = !(BACKEND_URL && listo); send.disabled = ENVIANDO || yaEnv; send.textContent = yaEnv ? "Cotización enviada ✓" : "Enviar cotización y fotos";
+  send.hidden = !(BACKEND_URL && listo); send.disabled = ENVIANDO || yaEnv; send.textContent = yaEnv ? "Cotización enviada ✓" : ENVIO_FALLO ? "Intentar de nuevo" : "Enviar cotización y fotos";
   $("#qCopy").hidden = !!BACKEND_URL;
-  $("#qAdj").textContent = !listo ? "" : BACKEND_URL ? (yaEnv ? "Tus fotos y tu cotización ya llegaron. Si quieres, avísanos también por WhatsApp." : "Toca “Enviar cotización y fotos”: llegan directo a nuestra hoja, sin adjuntar nada.") : puedeCompartir() ? `Toca “Enviar con fotos” para mandar el mensaje con ${fotosTotal() === 1 ? "tu foto" : "tus " + fotosTotal() + " fotos"} juntos.` : `Al abrir WhatsApp, toca el clip 📎 y adjunta ${fotosTotal() === 1 ? "la foto" : "las mismas " + fotosTotal() + " fotos"}: el navegador no permite que la página las adjunte sola.`;
-  $("#qWaBox").innerHTML = listo ? (!BACKEND_URL && puedeCompartir() ? `<button type="button" class="btn btn-primary" id="qShare">Enviar con fotos</button>` : "") + CONTACTOS.map(c => `<a class="btn btn-ghost" href="${waLink(c, msg.trim())}" target="_blank" rel="noopener">${BACKEND_URL ? "Avisar a " : "WhatsApp "}${esc(c.n.split(" ")[0])}</a>`).join("") : "";
+  $("#qAdj").textContent = !listo ? "" : BACKEND_URL ? (yaEnv ? "Tus fotos y tu cotización ya llegaron. Pablo y Martin te escribirán por WhatsApp para agendar la visita." : ENVIO_FALLO ? "No pudimos enviarla desde la página. Avísanos por WhatsApp y adjunta tus fotos con el clip 📎." : "Toca “Enviar cotización y fotos”: les llega a Pablo y a Martin con tus fotos, sin adjuntar nada.") : puedeCompartir() ? `Toca “Enviar con fotos” para mandar el mensaje con ${fotosTotal() === 1 ? "tu foto" : "tus " + fotosTotal() + " fotos"} juntos.` : `Al abrir WhatsApp, toca el clip 📎 y adjunta ${fotosTotal() === 1 ? "la foto" : "las mismas " + fotosTotal() + " fotos"}: el navegador no permite que la página las adjunte sola.`;
+  $("#qWaBox").innerHTML = listo && (!BACKEND_URL || ENVIO_FALLO) ? (!BACKEND_URL && puedeCompartir() ? `<button type="button" class="btn btn-primary" id="qShare">Enviar con fotos</button>` : "") + CONTACTOS.map(c => `<a class="btn btn-ghost" href="${waLink(c, msg.trim())}" target="_blank" rel="noopener">${BACKEND_URL ? "Avisar a " : "WhatsApp "}${esc(c.n.split(" ")[0])}</a>`).join("") : "";
 }
 
 function renderControls() {
@@ -1117,15 +1117,15 @@ $("#qWaBox").addEventListener("click", async e => {
 const blobB64 = blob => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = () => res(""); r.readAsDataURL(blob); });
 $("#qSend").addEventListener("click", async () => {
   if (ENVIANDO || !REF_ACTUAL || !BACKEND_URL) return;
-  const ref = REF_ACTUAL, st = $("#qSendMsg"); ENVIANDO = true; st.textContent = "Enviando tu cotización y tus fotos…"; $("#qSend").disabled = true;
+  const ref = REF_ACTUAL, st = $("#qSendMsg"); ENVIANDO = true; ENVIO_FALLO = false; st.textContent = "Enviando tu cotización y tus fotos…"; $("#qSend").disabled = true;
   try {
     const fotos = [];
     for (let a = 0; a < CART.length; a++) for (let b = 0; b < CART[a].fotos.length; b++) fotos.push({ n: `servicio${a + 1}-foto${b + 1}-${CART[a].svc}.jpg`, d: await blobB64(CART[a].fotos[b].blob) });
     const r = await fetch(BACKEND_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ref, fotos }) });
     const j = await r.json();
     if (!j || !j.ok) throw new Error("rechazada");
-    ENVIADO_REF = ref; st.textContent = "¡Listo! Recibimos tu cotización y tus fotos. Te escribimos por WhatsApp para agendar la visita.";
-  } catch (err) { st.textContent = "No pudimos confirmar el envío. Intenta de nuevo, o avísanos por WhatsApp con los botones de abajo y adjunta tus fotos con el clip 📎."; }
+    ENVIADO_REF = ref; ENVIO_FALLO = false; st.textContent = "¡Listo! Les avisamos a Pablo y a Martin. Te escribimos por WhatsApp para agendar la visita.";
+  } catch (err) { ENVIO_FALLO = true; st.textContent = "No pudimos confirmar el envío. Intenta de nuevo, o avísanos por WhatsApp con los botones de abajo y adjunta tus fotos con el clip 📎."; }
   ENVIANDO = false; updateResult();
 });
 renderControls(); addToCart();
