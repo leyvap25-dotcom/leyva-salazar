@@ -285,6 +285,30 @@
   .chk input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
   .qcard textarea.inp { min-height: 64px; font-size: 14px; color: var(--ink); }
   .aviso-hor { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--soft, rgba(11,123,214,.1)); font-size: 14px; line-height: 1.45; }
+  /* ---- Celular ---- */
+  .qbar { display: none; }
+  #qSendMsg:empty, #qOk:empty, #qAdj:empty, #qFalta:empty { display: none; }
+  @media (max-width: 900px) {
+    .qbar.on { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; align-items: center; justify-content: space-between; gap: 12px; padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(10,34,80,.14); }
+    .qbar small { display: block; color: var(--muted); font-size: 12.5px; }
+    .qbar b { font-size: 20px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .qbar .btn { flex: none; }
+  }
+  @media (max-width: 600px) {
+    body.en-panel .actions #btnEmp { display: inline-flex; }
+    body:not(.en-panel) .actions #btnEmp { display: none; }
+    .svc-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin-inline: -16px; padding: 4px 16px 10px; scroll-padding-inline: 16px; -webkit-overflow-scrolling: touch; }
+    .svc, .svc:nth-child(n+4) { flex: 0 0 82%; scroll-snap-align: start; }
+    .seg { display: flex; overflow-x: auto; scroll-snap-type: x proximity; }
+    .seg button { flex: 1 0 auto; padding: 0 16px; scroll-snap-align: center; }
+    .inp, input.inp, select.inp, textarea.inp, .qcard textarea.inp, .qmsgbox textarea.inp, .item .inp { font-size: 16px; }
+    .btn-sm { min-height: 44px; }
+    .cart .rm { width: 44px; height: 44px; }
+    .cart .phadd { min-height: 44px; }
+    .qcard .qfoot .btn, .qmsgbox .btn { min-height: 44px; }
+    .card { border-radius: 18px; }
+    body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  }
   .qmsgbox { border: 1px solid var(--line, rgba(0,0,0,.12)); border-radius: 12px; padding: 10px 12px; }
   .qmsgbox summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; }
   .qmsgbox[open] summary { margin-bottom: 8px; }
@@ -426,6 +450,7 @@
     </div>
   </section>
 
+  <div class="qbar" id="qBar"><div><small id="qBarN">Tu cotización</small><b id="qBarT">—</b></div><button class="btn btn-primary" id="qBarGo" type="button">Ver mi cotización</button></div>
   <section id="cotizador" class="band quote">
     <div class="inner">
       <div class="sec-head">
@@ -491,7 +516,7 @@
             <p class="fine" id="qSendMsg" role="status" style="flex-basis:100%;margin:0"></p>
           </div>
           <p class="fine" id="qAdj" role="status"></p>
-          <p class="fine">Las fotos son obligatorias: una por colchón y una por cada servicio (sillas, mueble, tapete, carro). Así evaluamos bien tu cotización. Con “Enviar con fotos” se mandan junto al mensaje; si tu celular no lo permite, abre el chat de WhatsApp y adjúntalas con el clip.</p>
+          <p class="fine" id="qFotosNota">Las fotos son obligatorias: una por colchón y una por cada servicio (sillas, mueble, tapete, carro). Así evaluamos bien tu cotización. Con “Enviar con fotos” se mandan junto al mensaje; si tu celular no lo permite, abre el chat de WhatsApp y adjúntalas con el clip.</p>
         </aside>
       </div>
     </div>
@@ -770,6 +795,7 @@ function setPanel(on) {
   $("#publico").hidden = on;
   $("#privado").hidden = !on;
   $("#btnEmp").textContent = on ? "Volver al sitio" : "Empleados";
+  document.body.classList.toggle("en-panel", on);
   $("#btnCot").hidden = on;
   $("#contacto").hidden = on;
   if (on) { refreshGate(); }
@@ -944,6 +970,7 @@ function updateResult() {
   $("#addBtn").disabled = !cur.total;
   const T = totalesCotizacion();
   $("#total").textContent = T.n ? cop(T.total) : "—";
+  $("#qBarT").textContent = T.n ? cop(T.total) : "—"; $("#qBarN").textContent = T.n === 1 ? "1 servicio" : T.n + " servicios"; if (window.__qbarUpd) window.__qbarUpd();
   $("#cartList").innerHTML = T.n ? CART.map(i => `<li><div><b>${esc(i.lines[0][0])}</b>${i.lines.length > 1 ? `<small>${esc(i.lines.slice(1).map(l => l[0]).join(" · "))}</small>` : ""}</div><span class="num">${cop(i.total)}</span><button type="button" class="rm" data-rm="${i.id}" aria-label="Quitar ${esc(i.lines[0][0])}">✕</button>${fotosHTML(i)}</li>`).join("")
     : '<li class="none">Agrega un servicio para armar tu cotización.</li>';
   const ls = [];
@@ -1128,6 +1155,18 @@ $("#qSend").addEventListener("click", async () => {
   } catch (err) { ENVIO_FALLO = true; st.textContent = "No pudimos confirmar el envío. Intenta de nuevo, o avísanos por WhatsApp con los botones de abajo y adjunta tus fotos con el clip 📎."; }
   ENVIANDO = false; updateResult();
 });
+(function () {
+  const sec = $("#cotizador"), res = document.querySelector(".result"), bar = $("#qBar");
+  let inSec = false, inRes = false;
+  window.__qbarUpd = () => bar.classList.toggle("on", inSec && !inRes && CART.length > 0);
+  if ("IntersectionObserver" in window) {
+    const io1 = new IntersectionObserver(es => { inSec = es[es.length - 1].isIntersecting; window.__qbarUpd(); }, { rootMargin: "0px 0px -45% 0px" });
+    const io2 = new IntersectionObserver(es => { inRes = es[es.length - 1].isIntersecting; window.__qbarUpd(); });
+    io1.observe(sec); io2.observe(res);
+  }
+  $("#qBarGo").addEventListener("click", () => res.scrollIntoView({ behavior: "smooth", block: "start" }));
+  if (BACKEND_URL) { $("#qMsg").hidden = true; $("#qFotosNota").textContent = "Las fotos son obligatorias: una por colchón y una por cada servicio (sillas, mueble, tapete, carro). Así evaluamos bien tu cotización y te damos el precio final."; }
+})();
 renderControls(); addToCart();
 
 /* ---------- Antes y después (ilustración) ---------- */
@@ -1332,7 +1371,7 @@ function renderCaja() {
     <td class="r num">${cop(r.cobro)}</td><td class="r num">${cop(r.gasto)}</td><td class="r num"><b>${cop(r.cobro - r.gasto)}</b></td>
     <td class="r">${r.tipo === "manual" ? `<button class="del" data-del="${r.id}">Borrar</button>` : ""}</td></tr>`).join("");
   const hayEj = S.ledger.some(r => r.ej);
-  L.innerHTML = `<table><thead><tr><th>Fecha</th><th>Servicio</th><th class="r">Cobrado</th><th class="r">Insumos</th><th class="r">Ganancia</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+  L.innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Servicio</th><th class="r">Cobrado</th><th class="r">Insumos</th><th class="r">Ganancia</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="hint" style="margin-top:12px">Las filas con la etiqueta Cotización se editan en la pestaña Cotizaciones.</p>
     ${hayEj ? '<p style="margin-top:12px"><button class="btn btn-ghost btn-sm" data-clear-demo>Quitar los ejemplos</button></p>' : ""}`;
 }
