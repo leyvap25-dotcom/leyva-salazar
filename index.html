@@ -251,8 +251,8 @@
   .foot p { color: var(--muted); font-size: 14px; }
   .linkbtn { background: none; border: 0; padding: 4px 0; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
-  .contact-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 760px; }
-  @media (max-width: 560px) { .contact-grid { grid-template-columns: minmax(0, 1fr); } }
+  .contact-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  @media (max-width: 560px) { .contact-grid .btn { flex: 1 1 100%; } }
   .contact { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: grid; gap: 4px; }
   .contact .who { font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 1.25rem; }
   .contact .tel { font-size: 1.5rem; font-weight: 700; letter-spacing: .02em; user-select: all; margin-bottom: 10px; }
@@ -427,7 +427,6 @@
   <section id="inicio" class="hero">
     <div class="inner hero-grid">
       <div>
-        <p class="eyebrow">Lavado de tapicerías</p>
         <h1>Tu espacio, <span>más limpio.</span></h1>
         <p class="lead">Lavamos tapetes, carros, muebles, colchones y sillas. Vamos hasta tu casa.</p>
         <div class="hero-cta">
@@ -446,9 +445,7 @@
   <section id="servicios" class="band">
     <div class="inner">
       <div class="sec-head">
-        <p class="eyebrow">Servicios</p>
         <h2>Lo que renovamos</h2>
-        <p class="lead">Elige el tuyo y míralo en el cotizador.</p>
       </div>
       <div class="svc-grid" id="svcGrid"></div>
       
@@ -459,9 +456,7 @@
   <section id="resultados" class="band">
     <div class="inner">
       <div class="sec-head">
-        <p class="eyebrow">Antes y después</p>
-        <h2>Desliza y mira la diferencia</h2>
-        <p class="lead">El polvo, las manchas y el color apagado salen con una extracción profunda.</p>
+        <h2>Mira la diferencia</h2>
       </div>
       <div class="tabs ba-tabs" role="tablist" aria-label="Ejemplos de antes y después" id="baTabs"></div>
       <div class="ba" id="ba">
@@ -478,9 +473,7 @@
   <section id="cotizador" class="band quote">
     <div class="inner">
       <div class="sec-head">
-        <p class="eyebrow">Cotizador</p>
-        <h2>Calcula tu precio en un minuto</h2>
-        <p class="lead">Cuéntanos qué quieres lavar y te mostramos un valor de referencia. Al ver la pieza confirmamos el precio final.</p>
+        <h2>Calcula tu precio</h2>
       </div>
       <div class="quote-grid">
         <div class="card">
@@ -499,7 +492,7 @@
           <div class="field" style="margin:22px 0 0;padding-top:20px;border-top:1px solid var(--line)">
             <span class="lbl">¿Dónde hacemos el servicio?</span>
             <div class="opts" id="zonaBox"></div>
-            <p class="hint">Vamos hasta tu domicilio. En Bogotá, Chía y Cajicá no cobramos transporte. Se cobra una sola vez por toda tu cotización.</p>
+            <p class="hint">Transporte gratis en Bogotá, Chía y Cajicá. Se cobra una sola vez.</p>
           </div>
           <div class="field" style="margin:22px 0 0;padding-top:20px;border-top:1px solid var(--line)">
             <span class="lbl">Tus datos y la visita</span>
@@ -516,8 +509,7 @@
               <label class="fl2"><span>Horario</span>
                 <select class="inp" id="qHora"><option value="">Cualquier horario</option><option value="m">En la mañana</option><option value="t">En la tarde</option></select></label>
             </div>
-            <p class="aviso-hor">🕔 <b>Somos jóvenes emprendedores</b> y tenemos trabajos de 8 a. m. a 5 p. m., por eso hacemos las visitas los <b>viernes en la tarde, sábados, domingos y festivos</b>.</p>
-            <p class="hint">La visita se confirma por WhatsApp según disponibilidad. Usamos tus datos solo para agendar y hacer el servicio.</p>
+            <p class="aviso-hor">🕔 Somos jóvenes emprendedores con trabajo de 8 a 5. Visitamos <b>viernes en la tarde, sábados, domingos y festivos</b>.</p>
           </div>
         </div>
         <aside class="result" aria-live="polite">
@@ -540,7 +532,7 @@
             <p class="fine" id="qSendMsg" role="status" style="flex-basis:100%;margin:0"></p>
           </div>
           <p class="fine" id="qAdj" role="status"></p>
-          <p class="fine" id="qFotosNota">Las fotos son obligatorias: una por colchón y una por cada servicio (sillas, mueble, tapete, carro). Así evaluamos bien tu cotización. Con “Enviar con fotos” se mandan junto al mensaje; si tu celular no lo permite, abre el chat de WhatsApp y adjúntalas con el clip.</p>
+          <p class="fine" id="qFotosNota">Una foto por servicio (y una por colchón) es obligatoria.</p>
         </aside>
       </div>
     </div>
@@ -549,14 +541,12 @@
   <section id="proceso" class="band process">
     <div class="inner">
       <div class="sec-head">
-        <p class="eyebrow">Cómo trabajamos</p>
-        <h2>Tres pasos, sin sorpresas</h2>
-        <p class="lead">Sabes qué vamos a hacer y cuánto cuesta antes de empezar.</p>
+        <h2>Cómo trabajamos</h2>
       </div>
       <ol class="steps">
-        <li><h3>Cotizas en la página</h3><p>Arma tu cotización con uno o varios servicios y mándanos fotos de lo que quieres lavar.</p></li>
-        <li><h3>Evaluamos y agendamos</h3><p>Revisamos tu cotización y nos comunicamos contigo para agendar la visita: viernes en la tarde, sábados, domingos y festivos.</p></li>
-        <li><h3>Lavamos, secamos y entregamos</h3><p>Vamos a tu domicilio, lavamos, secamos y te entregamos todo limpio.</p></li>
+        <li><h3>Cotizas</h3><p>Eliges servicios y subes fotos.</p></li>
+        <li><h3>Agendamos</h3><p>Te escribimos para confirmar el día.</p></li>
+        <li><h3>Renovamos en tu casa</h3><p>Lavamos, secamos y te entregamos todo limpio.</p></li>
       </ol>
     </div>
   </section>
@@ -698,14 +688,8 @@
   </section>
 </main>
 
-<section id="contacto" class="band" style="padding-bottom:24px">
+<section id="contacto" class="band" style="padding-block:28px 8px">
   <div class="inner">
-    <div class="sec-head">
-      <p class="eyebrow">Contacto</p>
-      <h2>Escríbenos y te cotizamos</h2>
-      <p class="lead">Atendemos en Bogotá, Chía, Cajicá y municipios cercanos. Mándanos una foto de lo que quieres lavar.</p>
-      <p class="lead" style="margin-top:8px">Somos jóvenes emprendedores con trabajos de 8 a. m. a 5 p. m.: hacemos las visitas los viernes en la tarde, sábados, domingos y festivos.</p>
-    </div>
     <div class="contact-grid" id="contactGrid"></div>
   </div>
 </section>
@@ -714,7 +698,7 @@
   <div class="inner foot">
     <div>
       <div class="brand-name" style="font-size:18px">Leyva &amp; Salazar</div>
-      <p>Lavado de tapicerías · Limpieza profunda, cuidado en cada detalle.</p>
+      <p>Lavado de tapicerías</p>
     </div>
     <button class="linkbtn" id="btnEmp2">Zona de empleados</button>
   </div>
@@ -818,9 +802,7 @@ document.addEventListener("click", e => {
 $("#btnEmp").addEventListener("click", () => setPanel(!enPanel));
 $("#btnEmp2").addEventListener("click", () => setPanel(true));
 
-$("#contactGrid").innerHTML = CONTACTOS.map(c => `
-  <div class="contact"><span class="who">${esc(c.n)}</span><span class="tel num">${esc(c.ver)}</span>
-  <a class="btn btn-primary btn-sm" href="${waLink(c, "Hola, quiero cotizar un lavado con Leyva & Salazar.")}" target="_blank" rel="noopener">Escribir por WhatsApp</a></div>`).join("");
+$("#contactGrid").innerHTML = CONTACTOS.map(c => `<a class="btn btn-ghost" href="${waLink(c, "Hola, quiero cotizar con Leyva & Salazar.")}" target="_blank" rel="noopener">WhatsApp · ${esc(c.n.split(" ")[0])} ${esc(c.ver)}</a>`).join("");
 
 /* ---------- Servicios ---------- */
 function desde(svc) {
@@ -849,7 +831,6 @@ $("#svcGrid").innerHTML = SERVICIOS.map(s => `
     <div class="svc-ico">${ICONOS[s.id]}</div>
     <h3>${s.t}</h3>
     <p>${s.d}</p>
-    <ul>${s.l.map(x => `<li>${x}</li>`).join("")}</ul>
     <div class="svc-foot">
       <div class="svc-price">Desde<b class="num">${cop(desde(s.id))}</b></div>
       <button class="btn btn-ghost btn-sm" data-svc-go="${s.id}">Cotizar</button>
@@ -1182,7 +1163,7 @@ $("#qSend").addEventListener("click", async () => {
     io1.observe(sec); io2.observe(res);
   }
   $("#qBarGo").addEventListener("click", () => res.scrollIntoView({ behavior: "smooth", block: "start" }));
-  if (BACKEND_URL) { $("#qMsg").hidden = true; $("#qFotosNota").textContent = "Las fotos son obligatorias: una por colchón y una por cada servicio (sillas, mueble, tapete, carro). Así evaluamos bien tu cotización y te damos el precio final."; }
+  if (BACKEND_URL) { $("#qMsg").hidden = true;  }
 })();
 renderControls(); updateResult();
 
@@ -1259,7 +1240,7 @@ function ejemploSVG(tipo, limpio) {
 const EJEMPLOS = [["tapete", "Tapete", "Ilustración de un tapete antes y después del lavado."], ["carro", "Carro", "Ilustración de un asiento de carro antes y después."], ["sofa", "Muebles", "Ilustración de un sofá antes y después."], ["colchon", "Colchón", "Ilustración de un colchón antes y después."], ["silla", "Silla", "Ilustración de una silla de comedor antes y después."]];
 function verEjemplo(tipo) {
   $("#baBefore").innerHTML = ejemploSVG(tipo, false); $("#baAfter").innerHTML = ejemploSVG(tipo, true);
-  $("#baCap").textContent = EJEMPLOS.find(e => e[0] === tipo)[2] + " Pronto verás aquí trabajos reales nuestros.";
+  $("#baCap").textContent = "Ilustración de ejemplo. Pronto, fotos de trabajos reales.";
   $$("#baTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.ej === tipo ? "true" : "false"));
   $("#ba").style.setProperty("--pos", "50%"); $("#baRange").value = 50;
 }
