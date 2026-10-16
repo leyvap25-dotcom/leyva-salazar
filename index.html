@@ -309,6 +309,15 @@
     .card { border-radius: 18px; }
     body { padding-bottom: env(safe-area-inset-bottom, 0px); }
   }
+  .ruta-card { margin-bottom: 22px; display: grid; gap: 12px; }
+  .ruta-card h3 { font-size: 1.25rem; }
+  .ruta-in { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .ruta-in label { display: grid; gap: 6px; font-weight: 700; font-size: 14px; }
+  @media (max-width: 480px) { .ruta-in { grid-template-columns: minmax(0, 1fr); } }
+  .ruta { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .ruta li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+  .ruta li small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  .ruta li > span:last-child { text-align: right; font-weight: 700; }
   .qmsgbox { border: 1px solid var(--line, rgba(0,0,0,.12)); border-radius: 12px; padding: 10px 12px; }
   .qmsgbox summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; }
   .qmsgbox[open] summary { margin-bottom: 8px; }
@@ -1209,7 +1218,7 @@ $("#baRange").addEventListener("input", e => $("#ba").style.setProperty("--pos",
    ZONA DE EMPLEADOS
    ============================================================ */
 const KEY = "leyva-salazar-panel-v1";
-let S = { checks: {}, costs: {}, trm: TRM_INICIAL, ledger: [], quotes: [] };
+let S = { checks: {}, costs: {}, trm: TRM_INICIAL, ledger: [], quotes: [], ruta: { jobs: 4, g: 95000 } };
 try { const raw = localStorage.getItem(KEY); if (raw) S = { ...S, ...JSON.parse(raw) }; } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
@@ -1247,11 +1256,13 @@ $$("[data-tab]").forEach(b => b.addEventListener("click", () => {
 }));
 
 /* ---------- Datos del plan ---------- */
+const REINV = 0.6; // desde la Fase 8, de cada ganancia el 60% se reinvierte y el 40% se reparte entre los socios
 const FASES = [
   { id: "f0", n: "Fase 0", t: "Arrancar sin invertir",
     d: "Se empieza con la extractora que ya tienen. Todo el dinero que entre viene de los clientes. Nadie del equipo pone plata propia.",
     tareas: [
-      ["f0a", "Probar la extractora en un tapete y en un asiento propios para conocer los tiempos"],
+      ["f0a2", "Probar la extractora en un tapete decorativo, en la tapicería de un carro y en un mueble propio para conocer los tiempos de operación y el desgaste físico"],
+      ["f0g", "Anotar en cada prueba cuánto tardó el lavado, cuánto el secado, cuánto insumo gastó y cómo quedaron la espalda, las manos y los brazos. Con eso definir cuántos trabajos por día aguantan"],
       ["f0b", "Definir las tarifas de lanzamiento con el cotizador"],
       ["f0c", "Conseguir los primeros 5 clientes entre familia, vecinos y conocidos"],
       ["f0d", "Tomar fotos de antes y después de cada trabajo"],
@@ -1259,13 +1270,15 @@ const FASES = [
       ["f0f", "Pedir a cada cliente una reseña y que recomiende a otra persona"]
     ] },
   { id: "f1", n: "Fase 1", t: "Imagen del equipo",
-    d: "Con las primeras ganancias: dos uniformes (camiseta y gorra) y tarjetas de presentación. Los valores son estimados, ajústalos con las cotizaciones reales.",
+    d: "Primero se deja listo el logo y los diseños, que no cuestan. Con las primeras ganancias: dos uniformes (camiseta y gorra) y tarjetas de presentación. Los valores son estimados, ajústalos con las cotizaciones reales.",
     items: [
       { id: "camisetas", n: "2 camisetas con logo", c: 80000 },
       { id: "gorras", n: "2 gorras con logo", c: 60000 },
       { id: "tarjetas", n: "100 tarjetas de presentación", c: 50000 }
     ],
     tareas: [
+      ["f1l", "Hacer el logo de la empresa: versión final, en alta calidad y con fondo transparente"],
+      ["f1m", "Hacer los diseños de las camisetas y las gorras con el logo"],
       ["f1a", "Cotizar camisetas y gorras en al menos 2 lugares"],
       ["f1b", "Mandar a hacer los 2 uniformes"],
       ["f1c", "Diseñar y mandar a imprimir las tarjetas, con un QR a esta página"],
@@ -1286,6 +1299,89 @@ const FASES = [
       ["f3b", "Ofrecer paquetes con descuento: colchón + sofá, o carro + muebles"],
       ["f3c", "Escribir a cada cliente a los 6 meses para ofrecerle un nuevo lavado"],
       ["f3d", "Un descuento para quien traiga a un cliente nuevo"]
+    ] },
+  { id: "f4", n: "Fase 4", t: "Equipo completo y seguro",
+    d: "Antes de crecer, cada trabajo tiene que salir rápido y sin improvisar. Aquí se compra lo que faltó en los primeros trabajos, para no depender de lo que tenga el cliente en su casa. Valores estimados.",
+    items: [
+      { id: "ins4", n: "Desmanchadores y enzimático para orina (unos 20 trabajos)", c: 120000 },
+      { id: "her4", n: "Cepillos, atomizadores, paños de microfibra y guantes", c: 90000 },
+      { id: "ele4", n: "Extensión de 15 m, regleta, manguera y tanque de 20 L", c: 110000 }
+    ],
+    tareas: [
+      ["f4a", "Hacer la lista de lo que se acabó o faltó en los primeros 10 trabajos"],
+      ["f4b", "Cotizar insumos al por mayor (galón en vez de botella) con 2 proveedores"],
+      ["f4c", "Armar una caja o maleta fija con todo el kit para no olvidar nada"],
+      ["f4d", "Anotar el gasto real de insumos por trabajo en Caja y compararlo con lo estimado"]
+    ] },
+  { id: "f5", n: "Fase 5", t: "Formalizar el negocio",
+    d: "Cuando ya hay clientes que repiten y se vende cada semana. Formalizarse abre la puerta a conjuntos, oficinas e inmobiliarias, que piden factura, y protege a los dos socios. Los valores son referencia: la Cámara de Comercio cobra según los ingresos del año anterior, y para ingresos bajos ronda los $150.000 entre matrícula e inscripción. Confírmalo en su simulador.",
+    items: [
+      { id: "mat5", n: "Matrícula mercantil e inscripción (estimado)", c: 150000 },
+      { id: "con5", n: "Una asesoría con un contador: RUT, régimen y facturación", c: 100000 }
+    ],
+    tareas: [
+      ["f5a", "Sacar el RUT en la DIAN, que es gratis"],
+      ["f5b", "Matricular el negocio en la Cámara de Comercio y anotar que se renueva cada año antes del 31 de marzo"],
+      ["f5c", "Preguntar al contador si les toca facturar y con qué herramienta"],
+      ["f5d", "Escribir y firmar el acuerdo entre Pablo y Martin: qué porcentaje es de cada uno, qué se reinvierte y qué se reparte"],
+      ["f5e", "Abrir una cuenta o Nequi solo para el negocio, sin mezclarla con la personal"]
+    ] },
+  { id: "f6", n: "Fase 6", t: "Que más gente nos encuentre",
+    d: "Hasta aquí los clientes llegaron por conocidos y recomendaciones. Ahora se prueba pagar poco por publicidad y se mide si vale la pena: cuánto cuesta cada cotización recibida contra lo que se gana con ella.",
+    items: [
+      { id: "pau6", n: "Anuncios en Instagram y Facebook, primer mes", c: 150000 },
+      { id: "vol6", n: "Volantes e imanes para porterías y administraciones", c: 80000 }
+    ],
+    tareas: [
+      ["f6a", "Subir videos cortos de antes y después a Instagram y TikTok, con permiso del cliente"],
+      ["f6b", "Hablar con administradores de conjuntos y edificios: ofrecer una jornada de lavado para varios vecinos el mismo día"],
+      ["f6c", "Buscar anfitriones de Airbnb y dueños de apartamentos amoblados: sus colchones y sofás se lavan cada pocos meses"],
+      ["f6d", "Probar los anuncios 2 semanas y calcular cuánto cuesta cada cotización recibida"],
+      ["f6e", "Seguir con los anuncios solo si cada $1 invertido devuelve $3 o más en ventas"]
+    ] },
+  { id: "f7", n: "Fase 7", t: "Fondo de reserva",
+    d: "Un negocio con una sola máquina se detiene si la máquina se daña. Este fondo cubre una reparación de la extractora y un par de semanas sin trabajar. No se toca para nada más.",
+    items: [
+      { id: "fon7", n: "Fondo de reserva (meta)", c: 600000 }
+    ],
+    tareas: [
+      ["f7a", "Guardarlo en una cuenta aparte, separada del dinero para reinvertir"],
+      ["f7b", "Acordar entre los dos que solo se usa para emergencias del equipo"],
+      ["f7c", "Pedir presupuesto de mantenimiento y repuestos de la extractora, para saber qué se puede dañar y cuánto costaría"]
+    ] },
+  { id: "f8", n: "Fase 8", t: "Primeros retiros de los socios",
+    d: "Hasta la Fase 7 el 100% de la ganancia se reinvierte. Cuando esa fase esté financiada, sale la primera plata para los socios. Regla propuesta: de lo que se gane desde ese momento, el 40% se reparte en partes iguales y el 60% sigue en el negocio. Se puede ajustar de común acuerdo.",
+    tareas: [
+      ["f8a", "Confirmar que las Fases 1, 2, 4, 5, 6 y 7 están financiadas"],
+      ["f8b", "Tener 4 semanas seguidas con al menos 3 trabajos por semana realizados"],
+      ["f8c", "Escribir la regla del reparto en el acuerdo de socios: porcentajes y fecha, por ejemplo cada fin de mes"],
+      ["f8d", "Hacer el primer retiro y apuntarlo"]
+    ] },
+  { id: "f9", n: "Fase 9", t: "Segundo equipo de trabajo",
+    d: "Con una sola máquina solo se puede hacer un trabajo a la vez. La segunda se compra cuando la agenda ya se llena: aplazar o rechazar al menos 2 trabajos por semana durante un mes. Con dos equipos pueden lavar en paralelo, o dejar un equipo listo para un ayudante.",
+    items: [
+      { id: "ext9", n: "Segunda extractora, usada o de gama económica", c: 1800000 },
+      { id: "ven9", n: "Ventiladores o deshumidificador para secar en paralelo", c: 250000 }
+    ],
+    tareas: [
+      ["f9a", "Confirmar que durante 4 semanas se aplazaron o rechazaron 2 o más trabajos por semana"],
+      ["f9b", "Comparar extractoras usadas y nuevas, con garantía y repuestos disponibles en Bogotá"],
+      ["f9c", "Probar si en una casa se pueden usar dos equipos a la vez sin que salte el breaker"],
+      ["f9d", "Duplicar el kit de insumos para el segundo equipo"]
+    ] },
+  { id: "f10", n: "Fase 10", t: "Primer ayudante",
+    d: "Un empleado de tiempo completo cuesta cerca de $3.000.000 al mes con seguridad social y prestaciones (estimado: el salario mínimo 2026 es $1.750.905 y el auxilio de transporte $249.095). Con unos $95.000 de ganancia por trabajo, harían falta unos 32 trabajos extra al mes solo para pagarlo. Por eso se empieza con un ayudante pagado por servicio, cerca del 35% de cada trabajo, solo los fines de semana, y se pasa a contrato cuando la agenda se mantenga llena.",
+    items: [
+      { id: "uni10", n: "Uniforme y kit de protección para el ayudante", c: 150000 },
+      { id: "res10", n: "Reserva para pagarle las primeras 4 semanas", c: 1000000 }
+    ],
+    tareas: [
+      ["f10a", "Condición: 8 semanas seguidas con la agenda llena y la Fase 9 financiada"],
+      ["f10b", "Elegir a alguien de confianza y probarlo 4 fines de semana trabajando junto a un socio"],
+      ["f10c", "Firmar un acuerdo escrito: pago por servicio, horarios, responsabilidades y qué pasa si se daña algo"],
+      ["f10d", "Capacitarlo con el Protocolo de esta página"],
+      ["f10e", "Preguntar al contador cuándo toca pasar a contrato laboral: si trabaja de forma permanente y bajo horario, la ley lo trata como empleado"],
+      ["f10f", "Revisar a los 3 meses si cada trabajo extra que hace el ayudante deja más ganancia de la que cuesta"]
     ] }
 ];
 const costItem = i => Number.isFinite(S.costs[i.id]) ? S.costs[i.id] : i.c;
@@ -1310,8 +1406,11 @@ const num = v => { const n = parseInt(String(v).replace(/[^\d]/g, ""), 10); retu
 
 function renderPlan() {
   const t = totales(), gan = Math.max(0, t.gan);
-  let resto = gan; const asig = {};
-  FASES.forEach(f => { const c = phaseCost(f); const a = Math.min(resto, c); asig[f.id] = a; resto -= a; });
+  const pos8 = FASES.findIndex(f => f.id === "f8");
+  const antes = FASES.slice(0, pos8).reduce((s, f) => s + phaseCost(f), 0);
+  const retirable = gan > antes ? Math.round((gan - antes) * (1 - REINV)) : 0, habilitado = gan >= antes;
+  let r1 = Math.min(gan, antes), r2 = Math.max(0, gan - antes) * REINV; const asig = {};
+  FASES.forEach((f, i) => { const c = phaseCost(f); if (i < pos8) { const a = Math.min(r1, c); asig[f.id] = a; r1 -= a; } else { const a = Math.min(r2, c); asig[f.id] = a; r2 -= a; } });
   const done = f => f.tareas.every(x => S.checks[x[0]]);
   let siguiente = null;
   FASES.forEach(f => { if (!siguiente && f.id !== "f0" && phaseCost(f) > 0 && asig[f.id] < phaseCost(f)) siguiente = f; });
@@ -1323,7 +1422,8 @@ function renderPlan() {
     <div class="stats">
       <div class="stat"><span class="k">Ganancia acumulada</span><span class="v num">${cop(gan)}</span><span class="s">Cobrado menos insumos de los servicios realizados</span></div>
       <div class="stat"><span class="k">Siguiente compra</span><span class="v">${siguiente ? esc(siguiente.t) : "Todo financiado"}</span><span class="s">${siguiente ? "Faltan " + cop(falta) : "Las fases con costo ya están cubiertas"}</span></div>
-      <div class="stat"><span class="k">Regla del equipo</span><span class="v" style="font-size:1.15rem">Sin plata propia</span><span class="s">Solo se compra con ganancias de los servicios</span></div>
+      ${habilitado ? `<div class="stat"><span class="k">Para repartir entre socios</span><span class="v num">${cop(retirable)}</span><span class="s">${Math.round((1 - REINV) * 100)}% de lo ganado después de la Fase 7</span></div>`
+        : `<div class="stat"><span class="k">Regla del equipo</span><span class="v" style="font-size:1.15rem">Sin plata propia</span><span class="s">Todo se reinvierte hasta financiar la Fase 7. Los retiros empiezan en la Fase 8</span></div>`}
     </div>`;
 
   const cards = FASES.map(f => {
@@ -1335,6 +1435,7 @@ function renderPlan() {
     else if (f === actual) { estado = "now"; chip = ["now", "En curso"]; }
     else if (c > 0 && a >= c) { chip = ["warn", "Financiada: a comprar"]; estado = "now"; }
     else if (c > 0 && a > 0) { chip = ["", `Ahorrando ${Math.round(a / c * 100)}%`]; }
+    if (f.id === "f8" && !d && habilitado) { chip = ["ok", "Retiros habilitados"]; estado = "now"; }
     const pct = c ? Math.min(100, a / c * 100) : 0;
     const costo = c > 0 ? `
       <div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}" aria-label="Ahorro para ${esc(f.t)}"><i style="width:${pct}%"></i></div>
@@ -1352,7 +1453,24 @@ function renderPlan() {
       <ul class="checks">${f.tareas.map(x => `<li><label><input type="checkbox" data-check="${x[0]}" ${S.checks[x[0]] ? "checked" : ""}><span>${x[1]}</span></label></li>`).join("")}</ul>
     </article>`;
   }).join("");
-  $("#p-plan").innerHTML = stats + `<div class="phases">${cards}</div>`;
+  const R = S.ruta || { jobs: 4, g: 95000 }, V = ventas();
+  const rate1 = R.jobs * R.g, wkTxt = w => `semana ${Math.max(1, Math.ceil(w))}`;
+  let wk = 0; const filas = [];
+  FASES.forEach((f, i) => { const c = phaseCost(f); if (c > 0) { wk += rate1 > 0 ? c / (i < pos8 ? rate1 : rate1 * REINV) : Infinity; filas.push([f, c, wk]); } else if (i === pos8) filas.push([f, 0, wk]); });
+  const hoyD = new Date(), cuando = w => { const d = new Date(hoyD.getTime() + Math.ceil(w) * 7 * 864e5); return d.toLocaleDateString("es-CO", { month: "short", year: "numeric" }); };
+  const prom = V.length ? Math.round(V.reduce((s, r) => s + r.cobro - r.gasto, 0) / V.length) : 0;
+  const ruta = `<div class="card ruta-card">
+      <h3>¿Cuándo llegamos a cada fase?</h3>
+      <p class="hint">Calculado con el ritmo que escriban aquí. Se asume que todas las semanas hacen esos trabajos, así que si hay semanas flojas, las fechas se corren. Desde la Fase 8 solo el ${Math.round(REINV * 100)}% de la ganancia va a las compras.</p>
+      <div class="ruta-in">
+        <label>Trabajos por semana<input class="inp num" inputmode="numeric" data-ruta="jobs" value="${R.jobs}"></label>
+        <label>Ganancia por trabajo (COP)<input class="inp num" inputmode="numeric" data-ruta="g" value="${R.g}"></label>
+      </div>
+      ${prom ? `<p class="hint">Con los servicios que ya registraron, el promedio es ${cop(prom)} de ganancia por trabajo.</p>` : ""}
+      ${rate1 > 0 ? `<p class="hint"><b>Ganancia por semana: ${cop(rate1)}.</b> ${Math.round((1 - REINV) * 100)}% de eso se reparte desde la Fase 8: ${cop(Math.round(rate1 * (1 - REINV)))} por semana entre los socios.</p>
+      <ul class="ruta">${filas.map(([f, c, w]) => `<li><span><b>${f.n}</b> · ${esc(f.t)}${c ? `<small>${cop(c)}</small>` : '<small>Desde aquí se puede sacar plata</small>'}</span><span class="num">${wkTxt(w)}<small>${cuando(w)}</small></span></li>`).join("")}</ul>` : '<p class="hint">Escribe cuántos trabajos por semana esperan hacer para ver las fechas.</p>'}
+    </div>`;
+  $("#p-plan").innerHTML = stats + ruta + `<div class="phases">${cards}</div>`;
 }
 
 function renderCaja() {
@@ -1390,6 +1508,7 @@ $("#p-plan").addEventListener("change", e => {
   if (t.dataset.check) { S.checks[t.dataset.check] = t.checked; }
   else if (t.dataset.cost) { S.costs[t.dataset.cost] = num(t.value); }
   else if (t.dataset.trm !== undefined) { S.trm = Math.max(1, num(t.value)); }
+  else if (t.dataset.ruta) { S.ruta = { ...(S.ruta || { jobs: 4, g: 95000 }), [t.dataset.ruta]: Math.max(0, num(t.value)) }; }
   else return;
   save(); renderPlan();
 });
