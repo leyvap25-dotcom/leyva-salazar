@@ -366,9 +366,9 @@
   .chip.warn { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
   .chip.now { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
   .phase > p { color: var(--muted); font-size: 15px; max-width: 70ch; }
-  .bar { height: 12px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-  .bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0A2250, #0B7BD6 70%, #52B4F5); min-width: 0; transition: width .5s ease; }
-  .bar-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; color: var(--muted); margin-top: -6px; }
+  .pbar { display: block; margin-top: 10px; height: 6px; min-height: 0; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .pbar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0B7BD6, #52B4F5); opacity: .85; min-width: 0; transition: width .5s ease; }
+  .bar-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; color: var(--muted); margin-top: 8px; }
   .items { display: grid; gap: 8px; }
   .item { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14.5px; }
   .item .inp { width: 140px; text-align: right; min-height: 38px; }
@@ -1438,7 +1438,7 @@ function renderPlan() {
     if (f.id === "f8" && !d && habilitado) { chip = ["ok", "Retiros habilitados"]; estado = "now"; }
     const pct = c ? Math.min(100, a / c * 100) : 0;
     const costo = c > 0 ? `
-      <div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}" aria-label="Ahorro para ${esc(f.t)}"><i style="width:${pct}%"></i></div>
+      <div><div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}" aria-label="Ahorro para ${esc(f.t)}"><i style="width:${pct}%"></i></div>
       <div class="bar-meta num"><span>${cop(a)} ahorrados</span><span>Meta ${cop(c)}</span></div></div>` : "";
     const items = f.items ? `<div class="items">${f.items.map(i => `
         <label class="item"><span>${esc(i.n)}</span><input class="inp num" inputmode="numeric" data-cost="${i.id}" value="${costItem(i)}" aria-label="Costo de ${esc(i.n)}"></label>`).join("")}</div>` : "";
@@ -1456,7 +1456,7 @@ function renderPlan() {
   const R = S.ruta || { jobs: 4, g: 95000 }, V = ventas();
   const rate1 = R.jobs * R.g, wkTxt = w => `semana ${Math.max(1, Math.ceil(w))}`;
   let wk = 0; const filas = [];
-  FASES.forEach((f, i) => { const c = phaseCost(f); if (c > 0) { wk += rate1 > 0 ? c / (i < pos8 ? rate1 : rate1 * REINV) : Infinity; filas.push([f, c, wk]); } else if (i === pos8) filas.push([f, 0, wk]); });
+  FASES.forEach((f, i) => { const c = phaseCost(f); if (c > 0) { wk += rate1 > 0 ? c / (i < pos8 ? rate1 : rate1 * REINV) : Infinity; filas.push([f, c, wk]); } else filas.push([f, 0, wk]); });
   const hoyD = new Date(), cuando = w => { const d = new Date(hoyD.getTime() + Math.ceil(w) * 7 * 864e5); return d.toLocaleDateString("es-CO", { month: "short", year: "numeric" }); };
   const prom = V.length ? Math.round(V.reduce((s, r) => s + r.cobro - r.gasto, 0) / V.length) : 0;
   const ruta = `<div class="card ruta-card">
@@ -1468,7 +1468,7 @@ function renderPlan() {
       </div>
       ${prom ? `<p class="hint">Con los servicios que ya registraron, el promedio es ${cop(prom)} de ganancia por trabajo.</p>` : ""}
       ${rate1 > 0 ? `<p class="hint"><b>Ganancia por semana: ${cop(rate1)}.</b> ${Math.round((1 - REINV) * 100)}% de eso se reparte desde la Fase 8: ${cop(Math.round(rate1 * (1 - REINV)))} por semana entre los socios.</p>
-      <ul class="ruta">${filas.map(([f, c, w]) => `<li><span><b>${f.n}</b> · ${esc(f.t)}${c ? `<small>${cop(c)}</small>` : '<small>Desde aquí se puede sacar plata</small>'}</span><span class="num">${wkTxt(w)}<small>${cuando(w)}</small></span></li>`).join("")}</ul>` : '<p class="hint">Escribe cuántos trabajos por semana esperan hacer para ver las fechas.</p>'}
+      <ul class="ruta">${filas.map(([f, c, w]) => `<li><span><b>${f.n}</b> · ${esc(f.t)}${c ? `<small>${cop(c)}</small>` : `<small>${f.id === "f8" ? "Desde aquí se puede sacar plata" : "Sin costo: se hace en paralelo"}</small>`}</span><span class="num">${wkTxt(w)}<small>${cuando(w)}</small></span></li>`).join("")}</ul>` : '<p class="hint">Escribe cuántos trabajos por semana esperan hacer para ver las fechas.</p>'}
     </div>`;
   $("#p-plan").innerHTML = stats + ruta + `<div class="phases">${cards}</div>`;
 }
